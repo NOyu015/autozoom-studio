@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoZoom — browser screen recorder with automatic zoom</title>
+  <meta name="description" content="Record your screen in the browser and get smooth automatic zoom, beautiful backgrounds and MP4/WebM export. No install.">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect rx='8' width='32' height='32' fill='%236d5dfc'/><circle cx='14' cy='14' r='7' fill='none' stroke='white' stroke-width='3'/><path d='M19 19l6 6' stroke='white' stroke-width='3' stroke-linecap='round'/></svg>">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="nav">
+  <a class="logo" href="#top"><span class="dot"></span>AutoZoom</a>
+  <nav>
+    <a href="#pricing" data-i18n="nav_pricing">Pricing</a>
+    <a href="#app" data-i18n="nav_app">Open editor</a>
+    <button id="langBtn" class="ghost sm">中文</button>
+    <span id="proBadge" class="badge" hidden>PRO</span>
+  </nav>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <h1 data-i18n="hero_title">Screen recordings that zoom themselves.</h1>
+    <p data-i18n="hero_sub"></p>
+    <div class="row center">
+      <a class="btn primary" href="#app" data-i18n="hero_cta">Start recording — free</a>
+      <a class="btn ghost" href="#pricing" data-i18n="hero_cta2">See pricing</a>
+    </div>
+    <ul class="features">
+      <li><h3 data-i18n="f1_t"></h3><p data-i18n="f1_d"></p></li>
+      <li><h3 data-i18n="f2_t"></h3><p data-i18n="f2_d"></p></li>
+      <li><h3 data-i18n="f3_t"></h3><p data-i18n="f3_d"></p></li>
+    </ul>
+  </section>
+
+  <section id="app" class="app">
+    <div class="toolbar">
+      <button id="recBtn" class="btn rec"><span class="recdot"></span><span data-i18n="rec">Record screen</span></button>
+      <span id="recTime" class="mono" hidden>0:00</span>
+      <label class="chk"><input type="checkbox" id="micChk"> <span data-i18n="mic">Microphone</span></label>
+      <label class="chk"><input type="checkbox" id="sysChk" checked> <span data-i18n="sysaudio">Tab/system audio</span></label>
+      <label class="btn ghost file"><input type="file" id="fileIn" accept="video/*" hidden><span data-i18n="open">Open video file</span></label>
+      <span class="grow"></span>
+      <button id="autoBtn" class="btn ghost" disabled data-i18n="auto">Auto-zoom</button>
+      <button id="addBtn" class="btn ghost" disabled data-i18n="add_zoom">Add zoom at playhead</button>
+      <button id="clearBtn" class="btn ghost" disabled data-i18n="clear">Clear zooms</button>
+    </div>
+
+    <div class="editor">
+      <div class="stage">
+        <div class="preview-wrap">
+          <canvas id="preview" width="1280" height="720"></canvas>
+          <div id="empty" class="empty" data-i18n="empty">Record your screen or open a video to start editing.</div>
+        </div>
+        <div class="transport">
+          <button id="playBtn" class="btn ghost sm" disabled>▶</button>
+          <span id="timeLbl" class="mono">0:00 / 0:00</span>
+          <span id="status" class="muted"></span>
+        </div>
+        <div id="timeline" class="timeline"></div>
+        <p class="hint" data-i18n="tl_hint"></p>
+      </div>
+
+      <aside class="side">
+        <section>
+          <h4 data-i18n="seg">Selected zoom</h4>
+          <div id="segNone" class="muted" data-i18n="none_sel"></div>
+          <div id="segEdit" hidden>
+            <label><span data-i18n="zoom">Zoom</span> <output id="zoomOut"></output><input type="range" id="zoomIn" min="1.1" max="4" step="0.1"></label>
+            <div class="row"><span id="segTimes" class="mono muted"></span><span class="grow"></span><button id="delBtn" class="btn ghost sm danger" data-i18n="del">Delete</button></div>
+          </div>
+        </section>
+        <section>
+          <h4 data-i18n="style">Style</h4>
+          <div class="label" data-i18n="bg">Background</div>
+          <div id="swatches" class="swatches"></div>
+          <div class="row">
+            <label class="chk"><input type="color" id="solidIn" value="#1e1e2e"> <span data-i18n="solid">Solid</span></label>
+            <label class="btn ghost sm file" id="customLbl"><input type="file" id="customIn" accept="image/*" hidden><span data-i18n="custom">Custom image</span> <span class="badge sm">PRO</span></label>
+          </div>
+          <label><span data-i18n="padding">Padding</span><input type="range" id="padIn" min="0" max="0.2" step="0.005" value="0.07"></label>
+          <label><span data-i18n="radius">Corners</span><input type="range" id="radIn" min="0" max="48" step="1" value="16"></label>
+          <label><span data-i18n="shadow">Shadow</span><input type="range" id="shIn" min="0" max="80" step="1" value="40"></label>
+        </section>
+        <section>
+          <h4 data-i18n="export">Export</h4>
+          <div class="row">
+            <label class="grow"><span data-i18n="res">Resolution</span>
+              <select id="resSel"><option value="720">720p</option><option value="1080">1080p · PRO</option><option value="2160">4K · PRO</option></select></label>
+            <label class="grow"><span data-i18n="format">Format</span>
+              <select id="fmtSel"><option value="mp4">MP4</option><option value="webm">WebM</option></select></label>
+          </div>
+          <button id="exportBtn" class="btn primary full" disabled data-i18n="export_btn">Export video</button>
+          <div id="exportProg" hidden><progress id="prog" max="1" value="0"></progress><div class="row"><span class="muted" data-i18n="exporting"></span><span class="grow"></span><button id="cancelBtn" class="btn ghost sm" data-i18n="cancel">Cancel</button></div></div>
+          <a id="dlLink" class="btn ghost full" hidden download>⬇ Download</a>
+        </section>
+      </aside>
+    </div>
+  </section>
+
+  <section id="pricing" class="pricing">
+    <h2 data-i18n="pr_title">Pricing</h2>
+    <div class="plans">
+      <div class="plan">
+        <h3 data-i18n="pr_free">Free</h3>
+        <div class="price">$0</div>
+        <ul><li data-i18n="pr_free_1"></li><li data-i18n="pr_free_2"></li><li data-i18n="pr_free_3"></li><li data-i18n="pr_free_4"></li></ul>
+        <a class="btn ghost full" href="#app" data-i18n="pr_start">Start free</a>
+      </div>
+      <div class="plan featured">
+        <h3 data-i18n="pr_pro">Pro</h3>
+        <div class="price"><span id="proPrice">$5</span><small data-i18n="pr_mo">/month</small></div>
+        <ul><li data-i18n="pr_pro_1"></li><li data-i18n="pr_pro_2"></li><li data-i18n="pr_pro_3"></li><li data-i18n="pr_pro_4"></li></ul>
+        <a id="getProBtn" class="btn primary full" target="_blank" rel="noopener" data-i18n="pr_get">Get Pro</a>
+        <button id="haveKeyBtn" class="linkbtn" data-i18n="pr_have">I have a license key</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer><span data-i18n="footer"></span></footer>
+
+<dialog id="licDlg">
+  <form method="dialog">
+    <h3 data-i18n="lic_title">Activate Pro</h3>
+    <input id="licIn" data-i18n-ph="lic_ph" placeholder="License key" autocomplete="off">
+    <p id="licMsg" class="muted"></p>
+    <div class="row">
+      <button id="licOut" type="button" class="btn ghost sm" data-i18n="lic_out" hidden>Remove key</button>
+      <span class="grow"></span>
+      <button value="cancel" class="btn ghost" data-i18n="close">Close</button>
+      <button id="licAct" type="button" class="btn primary" data-i18n="lic_act">Activate</button>
+    </div>
+  </form>
+</dialog>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>
